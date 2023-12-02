@@ -1,124 +1,116 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:minto/homescreen.dart';
+import 'package:provider/provider.dart';
 
-class Booking extends StatefulWidget {
-  const Booking({super.key});
-
-  @override
-  State<Booking> createState() => _BookingState();
-}
-
-class _BookingState extends State<Booking> {
-  List tables = [
-    "Table 1",
-    "Table 2",
-    "Table 3",
-    "Table 4",
-  ];
-  List mylist = [];
-bool checkbox=false;
-
-
-
-  bool checkinlist(int index) {
-    bool yes = false;
-    for (int i = 0; i < mylist.length; i++) {
-      if (mylist[i] == index) {
-        yes = true;
-        return yes;
-      }
-    }
-    return yes;
-  }
-
+class TableSelectionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body:
-      Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: GridView.builder(
-            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: 200,
-                childAspectRatio: 3 / 2,
-                crossAxisSpacing: 20,
-                mainAxisSpacing: 20),
-            itemCount: tables.length,
-            itemBuilder: (BuildContext ctx, index) {
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _showDialog(context);
-                    mylist.add(index);
-                  });
+      appBar: AppBar(
+        title: Text('Table Selection'),
+      ),
+      body: Consumer<TableProvider>(
+        builder: (context, tableProvider, _) {
+          return GridView.builder(
+            itemCount: tableProvider.tables.length,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 4.0,
+                mainAxisSpacing: 4.0
+            ),
+            itemBuilder: (BuildContext context, int index){
+              var table = tableProvider.tables[index];
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: InkWell(
+                  onTap: () {
 
-                },
+                    if (!table.isOccupied) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => MenuScreen()),
+                      );
+                    } else {
+                      // Show some message indicating the table is occupied
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Table ${index + 1} is occupied!')),
+                      );
+                    }
+                  },
+                  child: Container(
+                    height: 150,
 
-                child: Container(
-                  width: 150,
-                  height: 150,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                      color: checkinlist(index) ? Colors.green : Colors.grey,
-                      borderRadius: BorderRadius.circular(15)),
-                  child: Text("${tables[index]}"),
+                    decoration: BoxDecoration(
+                      color: const Color(0xffffffff),
+                      image: const DecorationImage(
+                        image: AssetImage('assets/images/ss.jpg'),
+                        fit: BoxFit.scaleDown,
+                      ),
+                      border: Border.all(
+                        width: 0.5,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Stack(
+                      children: [
+                        Positioned(
+                            top: 5,
+                            left: 10,
+                            child:  Text(table.isOccupied ? 'Occupied' : 'Open',style: TextStyle(color: table.isOccupied ? Colors.red : Colors.green,fontWeight: FontWeight.bold),))
+                      ],
+                    ),
+                  ),
                 ),
               );
-            }),
+            },
+          );
+
+
+
+
+        },
       ),
     );
   }
-
-  void _showDialog(BuildContext context) {
-    List foods = [
-      "Chicken Biriyani",
-      "Kuzhi Mandhi",
-      "Shawarma Plate",
-      "Shawarma Roll",
-    ];
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          content: Container(
-            width: 300,
-            height: 200,
-            child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: foods.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return Card(
-                    child: Checkbox(
-                      value: checkbox,
-                      onChanged: (value) {
-                        setState(() {
-                          checkbox=value!;
-
-                        });
-                      },
-                    ),
+}
 
 
-                  );
-                }),
-          ),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(
-                  top: 10, left: 50, right: 80, bottom: 10),
-              child: ElevatedButton(
-                child: Text("continue"),
-                onPressed: () {
-                  Navigator.pop(context);
 
-                }, style: ElevatedButton.styleFrom(
-                  primary: Colors.green
-              ),
-              ),
-            ),
-          ],
-        );
-      },
+class MenuScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Menu'),
+      ),
+      body: Center(
+        child: Text('Menu Screen'),
+      ),
     );
+  }
+}
+
+class TableModel {
+  final int id;
+  bool isOccupied;
+
+  TableModel({required this.id, this.isOccupied = false});
+}
+class TableProvider extends ChangeNotifier {
+  List<TableModel> _tables = [TableModel(id: 1,isOccupied:true),
+    TableModel(id: 1,isOccupied:true),
+    TableModel(id: 2,isOccupied:false),
+    TableModel(id: 3,isOccupied:false),
+    TableModel(id: 4,isOccupied:true),
+    TableModel(id: 5,isOccupied:true),
+    TableModel(id: 6,isOccupied:false),
+    TableModel(id: 7,isOccupied:true)
+  ];
+
+  List<TableModel> get tables => _tables;
+
+  void occupyTable(int tableId) {
+    _tables[tableId].isOccupied = true;
+    notifyListeners();
   }
 }

@@ -43,7 +43,7 @@ class _HomescreenState extends State<Homescreen> {
                              onTap: () {
                                Navigator.push(
                                  context,
-                                 MaterialPageRoute(builder: (context) => Booking()),
+                                 MaterialPageRoute(builder: (context) => TableSelectionScreen()),
                                );
                              }
 
